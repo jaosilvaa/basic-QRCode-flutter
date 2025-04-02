@@ -18,7 +18,7 @@ class QRActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Copy button - always visible
+        
         SizedBox(
           width: MediaQuery.of(context).size.width - 100,
           child: ElevatedButton(
@@ -62,8 +62,6 @@ class QRActionButtons extends StatelessWidget {
               ),
             ),
           ),
-        
-        // Add more contextual buttons here for other types
       ],
     );
   }
