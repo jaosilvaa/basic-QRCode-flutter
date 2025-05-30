@@ -16,6 +16,7 @@ class ScanResult {
     return ScanResult(
       rawValue: value,
       type: QRUtils.detectType(value),
+      
     );
   }
 
