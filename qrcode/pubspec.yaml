@@ -44,6 +44,15 @@ dependencies:
   permission_handler: ^12.0.0+1
   android_intent_plus: ^5.3.0
   wifi_scan: ^0.4.0
+  shared_preferences: ^2.5.3
+  provider: ^6.1.2
+  intl: ^0.18.1
+  screenshot: ^3.0.0
+  path_provider: ^2.1.2
+  share_plus: ^7.2.2
+  lucide_icons_flutter: ^3.0.9
+  google_fonts: ^6.1.0
+  shimmer: ^3.0.0
 
   
 
@@ -81,6 +90,11 @@ flutter:
      - assets/frame.svg
      - assets/frame2.svg
      - assets/frame.png
+     - assets/190.png
+     - assets/191.png
+     - assets/192.png
+     - assets/193.png
+     - assets/195.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -94,11 +108,17 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
+  #fonts:
+    # - family: Inter
+    #   fonts:
+    #     - asset: assets/fonts/Inter/Inter_24pt-Regular.ttf
+    #      weight: 400
+    #     -  asset: assets/fonts/Inter/Inter_24pt-Medium.ttf
+    #        weight: 500
+    #     -  asset: assets/fonts/Inter/Inter_24pt-SemiBold.ttf
+    #        weight: 600
+    #     -  asset: assets/fonts/Inter/Inter_24pt-Bold.ttf
+    #        weight: 700
   #         style: italic
   #   - family: Trajan Pro
   #     fonts:
