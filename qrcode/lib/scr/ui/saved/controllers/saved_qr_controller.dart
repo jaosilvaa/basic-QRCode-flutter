@@ -11,17 +11,20 @@ class SavedQrController extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   SavedQrController(this._localStorageService) {
-    updateFromService();
+    loadSavedQrCodes();
+    _localStorageService.addListener(loadSavedQrCodes);
   }
 
-  // Adiciona o método público updateFromService para ser chamado pelo Provider
-  void updateFromService() {
-    _updateSavedQrCodes();
+  @override
+  void dispose() {
+    _localStorageService.removeListener(loadSavedQrCodes);
+    super.dispose();
   }
 
-  Future<void> _updateSavedQrCodes() async {
+  Future<void> loadSavedQrCodes() async{
     _isLoading = true;
     notifyListeners();
+    await Future.delayed(const Duration(milliseconds: 700));
     _savedQrCodes = await _localStorageService.getSavedQrCodes();
     _isLoading = false;
     notifyListeners();

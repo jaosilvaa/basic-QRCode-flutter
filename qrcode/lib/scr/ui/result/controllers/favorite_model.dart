@@ -11,14 +11,17 @@ class FavoritesController extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   FavoritesController(this._localStorageService) {
-    updateFromService();
+    loadFavorites();
+    _localStorageService.addListener(loadFavorites);
   }
 
-  void updateFromService() {
-    _updateFromService();
+  @override
+  void dispose() {
+    _localStorageService.removeListener(loadFavorites);
+    super.dispose();
   }
 
-  Future<void> _updateFromService() async {
+  Future<void> loadFavorites() async {
     _isLoading = true;
     notifyListeners();
     _favoriteQrCodes = await _localStorageService.getSavedQrCodes();
@@ -27,14 +30,14 @@ class FavoritesController extends ChangeNotifier {
   }
 
   Future<bool> addFavorite(ScanResult result) async {
-    return await _localStorageService.saveQrCode(result);
+    final wasSaved = await _localStorageService.saveQrCode(result);
+    return wasSaved;
   }
 
   Future<void> removeFavorite(String id) async {
     await _localStorageService.removeQrCode(id);
   }
 
-  // Corrigido: Agora usa a igualdade de valor
   bool isFavorite(ScanResult result) {
     return _favoriteQrCodes.any((fav) => fav == result);
   }

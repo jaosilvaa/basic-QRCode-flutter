@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qrqrcode/scr/ui/saved/controllers/saved_qr_controller.dart';
@@ -14,15 +13,13 @@ class SavedQrScreen extends StatefulWidget {
 }
 
 class _SavedQrScreenState extends State<SavedQrScreen> {
-  // O initState não é mais necessário com o ChangeNotifierProxyProvider
-  // O controlador será inicializado e carregará os dados automaticamente.
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     Provider.of<SavedQrController>(context, listen: false).loadSavedQrCodes();
-  //   });
-  // }
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SavedQrController>(context, listen: false).loadSavedQrCodes();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +45,6 @@ class _SavedQrScreenState extends State<SavedQrScreen> {
       ),
       body: Consumer<SavedQrController>(
         builder: (context, savedQrController, child) {
-          // Se a lista estiver vazia e não estiver carregando, exiba a imagem
           if (!savedQrController.isLoading && savedQrController.savedQrCode.isEmpty) {
             return Center(
               child: Image.asset(
@@ -59,7 +55,6 @@ class _SavedQrScreenState extends State<SavedQrScreen> {
             );
           }
           
-          // Se estiver carregando, mostra o shimmer
           if (savedQrController.isLoading) {
             sleep(Durations.medium1);
             return Shimmer.fromColors(

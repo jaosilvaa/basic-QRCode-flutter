@@ -53,6 +53,7 @@ dependencies:
   lucide_icons_flutter: ^3.0.9
   google_fonts: ^6.1.0
   shimmer: ^3.0.0
+  get_it: ^7.7.0
 
   
 
