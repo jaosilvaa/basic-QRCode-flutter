@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:qrqrcode/scr/domain/models/scan_result.dart';
 import 'package:qrqrcode/scr/ui/saved/controllers/saved_qr_controller.dart';
 import 'package:qrqrcode/scr/ui/saved/widgets/saved_qr_card.dart';
 import 'package:shimmer/shimmer.dart';
@@ -13,11 +14,16 @@ class SavedQrScreen extends StatefulWidget {
 }
 
 class _SavedQrScreenState extends State<SavedQrScreen> {
+
   @override
   void initState() {
     super.initState();
+    
+    final controller = context.read<SavedQrController>();
+    controller.prepareScreen();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<SavedQrController>(context, listen: false).loadSavedQrCodes();
+      controller.initialize();
     });
   }
 
@@ -43,36 +49,37 @@ class _SavedQrScreenState extends State<SavedQrScreen> {
           ),
         ),
       ),
+
       body: Consumer<SavedQrController>(
         builder: (context, savedQrController, child) {
-          if (!savedQrController.isLoading && savedQrController.savedQrCode.isEmpty) {
-            return Center(
-              child: Image.asset(
-                'assets/195.png',
-                height: 280,
-                fit: BoxFit.contain,
-              ),
-            );
-          }
-          
+
           if (savedQrController.isLoading) {
-            sleep(Durations.medium1);
             return Shimmer.fromColors(
-              baseColor: Colors.black,
-              highlightColor: const Color.fromARGB(255, 29, 28, 28),
+              baseColor: Colors.grey[900]!,
+              highlightColor: const Color.fromARGB(255, 40, 40, 40),
               child: ListView.builder(
-                itemCount: savedQrController.savedQrCode.length == 0 ? 4 : savedQrController.savedQrCode.length,
+                itemCount: 4,
                 itemBuilder: (context, index) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     child: SizedBox(
-                      height: 70, 
+                      height: 70,
                       child: Card(
                         color: Color(0xFF151515),
                       ),
                     ),
                   );
                 },
+              ),
+            );
+          }
+
+          if (savedQrController.savedQrCode.isEmpty) {
+            return Center(
+              child: Image.asset(
+                'assets/195.png',
+                height: 280,
+                fit: BoxFit.contain,
               ),
             );
           }
