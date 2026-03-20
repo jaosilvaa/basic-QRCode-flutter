@@ -11,6 +11,7 @@ class FormContainerNew extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final Color containerColor = theme.scaffoldBackgroundColor;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -18,7 +19,7 @@ class FormContainerNew extends StatelessWidget {
           width: double.infinity,
           
           decoration:  BoxDecoration(
-            color: theme.colorScheme.background,
+            color: containerColor,
             borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(20),
               bottomRight: Radius.circular(20),

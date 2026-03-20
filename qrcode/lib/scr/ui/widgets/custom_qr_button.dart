@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qrqrcode/scr/core/theme/app_colors.dart'; 
 
 class CustomQRButton extends StatelessWidget {
   final IconData icon;
@@ -18,6 +19,11 @@ class CustomQRButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = isDark 
+        ? AppColors.neutralGrey950 
+        : AppColors.neutralLightGrey;
+
     return Material(
       color: Colors.transparent,
       child: Ink(
@@ -27,14 +33,12 @@ class CustomQRButton extends StatelessWidget {
             color: theme.colorScheme.outline,
             width: 1.5,
           ),
-          // ignore: deprecated_member_use
-          color: theme.colorScheme.outline.withOpacity(0.4),
+          color: backgroundColor, 
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(15),
           onTap: onPressed,
-          // ignore: sized_box_for_whitespace
-          child: Container(
+          child: SizedBox(
             height: 50,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -48,7 +52,6 @@ class CustomQRButton extends StatelessWidget {
                 Text(
                   label,
                   style: textTheme.titleSmall,
-                  
                 ),
               ],
             ),

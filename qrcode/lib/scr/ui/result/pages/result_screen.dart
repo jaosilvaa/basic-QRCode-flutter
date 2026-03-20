@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:iconsax/iconsax.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qrqrcode/scr/core/theme/app_colors.dart';
 import 'package:qrqrcode/scr/core/theme/app_text_styles.dart';
+import 'package:qrqrcode/scr/domain/models/enums/qr_style_type.dart';
 import 'package:qrqrcode/scr/ui/result/widgets/favorite_button.dart';
 import 'package:qrqrcode/scr/shared/utils/qr_utils.dart';
+import 'package:qrqrcode/scr/ui/settings/controllers/qr_style_controller.dart';
+import 'package:qrqrcode/scr/ui/widgets/custom_app_bar.dart';
 import 'package:qrqrcode/scr/ui/widgets/qr_result_display.dart';
 import '../../../domain/models/scan_result.dart';
 import '../../widgets/qr_action_buttons.dart';
-
-const bgColor = Color(0xfffafafa);
 
 class ResultScreen extends StatelessWidget {
   final ScanResult result;
@@ -23,27 +25,22 @@ class ResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final topBackgroundColor = isDark ? AppColors.white : AppColors.neutralLightGrey;
+    final modalBackgroundColor = isDark ? AppColors.black : AppColors.white;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.onSecondary,
-        centerTitle: true,
-        title: Text(
-          'Result QR Code',
-          style: textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.onPrimary,
-          ),
-        ),
+      backgroundColor: modalBackgroundColor,
+      appBar: CustomAppBar(
+        title: 'Result QR Code',
+        backgroundColor: topBackgroundColor,
+        textColor: AppColors.black,
         leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            Iconsax.arrow_circle_left,
-            color: theme.colorScheme.onPrimary,
-          ),
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, color: AppColors.black),
         ),
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -51,7 +48,7 @@ class ResultScreen extends StatelessWidget {
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: theme.colorScheme.onSecondary,
+                color: topBackgroundColor,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
@@ -68,11 +65,27 @@ class ResultScreen extends StatelessWidget {
                         width: 190,
                         height: 190,
                       ),
-                      QrImageView(
-                        data: result.rawValue,
-                        size: 150,
-                        version: QrVersions.auto,
-                      ),
+                      Consumer<QrStyleController>(
+                        builder: (context, styleController, _){
+                          final isModern = styleController.qrStyle == QrStyleType.modern;
+                          final eyeShape = isModern ? QrEyeShape.circle : QrEyeShape.square;
+                          final dataShape = isModern ? QrDataModuleShape.circle  : QrDataModuleShape.square;
+
+                          return QrImageView(
+                            data: result.rawValue,
+                            size: 150,
+                            version: QrVersions.auto,
+                            eyeStyle: QrEyeStyle(
+                              eyeShape: eyeShape,
+                              color: AppColors.black,
+                            ),
+                            dataModuleStyle: QrDataModuleStyle(
+                              dataModuleShape: dataShape,
+                              color: AppColors.black,
+                            ),
+                          );
+                        },
+                      )
                     ],
                   ),
                   Align(
@@ -93,7 +106,7 @@ class ResultScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: theme.colorScheme.onSecondary,
+                        color: isDark ? AppColors.white : AppColors.black,
                         width: 1.2,
                       ),
                     ),
@@ -101,7 +114,7 @@ class ResultScreen extends StatelessWidget {
                       child: QRUtils.getIconType(
                         result.type,
                         size: 25,
-                        color: theme.colorScheme.primary,
+                        color: isDark? theme.colorScheme.primary : AppColors.black
                       ),
                     ),
                   ),
@@ -111,6 +124,7 @@ class ResultScreen extends StatelessWidget {
                       QRUtils.getTypeName(result.type),
                       style: textTheme.titleMedium?.copyWith(
                         fontWeight: AppTextStyles.bold,
+                        color: isDark ? AppColors.white : AppColors.black,
                       ),
                     ),
                   ),

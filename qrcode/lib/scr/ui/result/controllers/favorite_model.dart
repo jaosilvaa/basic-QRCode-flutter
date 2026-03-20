@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qrqrcode/scr/data/services/local_storageService.dart';
+import 'package:qrqrcode/scr/data/services/local_storage_service.dart';
 import 'package:qrqrcode/scr/domain/models/scan_result.dart';
 
 class FavoritesController extends ChangeNotifier {

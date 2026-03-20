@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../domain/models/qr_type.dart';
+import '../../domain/models/enums/qr_type.dart';
 
 class QRUtils {
   static QRType detectType(String value) {
@@ -69,7 +69,7 @@ class QRUtils {
     }
   }
 
-    static String getTypeName_saveds(QRType type) {
+    static String getTypeNameSaveds(QRType type) {
     switch (type) {
       case QRType.url: return 'URL';
       case QRType.email: return 'E-MAIL';

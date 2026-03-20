@@ -1,50 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
+import 'package:get_it/get_it.dart';
+import 'package:qrqrcode/routes.dart'; 
 import 'package:qrqrcode/scr/app/main_navigation.dart';
 import 'package:qrqrcode/scr/core/theme/app_theme.dart';
-import 'package:qrqrcode/scr/data/services/local_storageService.dart';
-import 'package:qrqrcode/scr/ui/result/controllers/favorite_model.dart';
-import 'package:qrqrcode/scr/ui/saved/controllers/saved_qr_controller.dart';
+import 'package:qrqrcode/scr/ui/settings/controllers/theme_controller.dart';
+import 'package:qrqrcode/scr/core/di/injection_container.dart';
+import 'package:qrqrcode/scr/core/utils/system_config.dart'; 
+import 'package:qrqrcode/scr/core/app/app_providers.dart'; 
 
 final sl = GetIt.instance;
 
-void setup(){
-  sl.registerLazySingleton<LocalStorageService>(() => LocalStorageService());
-
-  sl.registerLazySingleton<FavoritesController>(() => FavoritesController(sl()));
-  sl.registerLazySingleton<SavedQrController>(() => SavedQrController(sl()));
-}
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
-
-  setup();
+  await prepareSystemUI();
+  
+  setupInjection(); 
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<FavoritesController>(create: (_) => sl<FavoritesController>()),
-        ChangeNotifierProvider<SavedQrController>(create: (_) => sl<SavedQrController>())     
-      ],
-      child: const MyApp(),
+    const AppProviders( 
+      child: MyApp(), // 
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+
+    final themeMode = context.watch<ThemeController>().themeMode;
+    return MaterialApp.router(
+      title: 'ScanLinker',
+      theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
-      home: const MainScreen(),
+      themeMode: themeMode,
+      //home: const MainScreen(),
       debugShowCheckedModeBanner: false,
-      title: 'QR Scanner',
+      routerConfig: routes,
+
     );
   }
 }

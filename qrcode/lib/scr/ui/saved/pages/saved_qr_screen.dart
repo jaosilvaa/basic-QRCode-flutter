@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:qrqrcode/scr/domain/models/scan_result.dart';
+import 'package:qrqrcode/scr/core/theme/app_colors.dart';
 import 'package:qrqrcode/scr/ui/saved/controllers/saved_qr_controller.dart';
 import 'package:qrqrcode/scr/ui/saved/widgets/saved_qr_card.dart';
 import 'package:shimmer/shimmer.dart';
@@ -14,81 +14,113 @@ class SavedQrScreen extends StatefulWidget {
 }
 
 class _SavedQrScreenState extends State<SavedQrScreen> {
+  late Future<void> _initializationFuture;
 
   @override
   void initState() {
     super.initState();
-    
     final controller = context.read<SavedQrController>();
-    controller.prepareScreen();
     
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.initialize();
-    });
+    _initializationFuture = controller.prepareScreen();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.black,
-      drawer: const Drawer(
-       
-      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      drawer: const Drawer(),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: isDark ? AppColors.black : AppColors.white,
         centerTitle: true,
-        iconTheme: const IconThemeData(
-        color: Colors.white,
+        iconTheme: IconThemeData(
+          color: isDark ? AppColors.white : AppColors.black,
         ),
-        title: const Text(
+        title: Text(
           'Histórico',
-          style: TextStyle(
-            color: Colors.white,
+          style: GoogleFonts.roboto(
+            color: isDark ? AppColors.white : AppColors.black,
             fontSize: 18,
             fontWeight: FontWeight.w500,
           ),
         ),
       ),
 
-      body: Consumer<SavedQrController>(
-        builder: (context, savedQrController, child) {
+      body: FutureBuilder<void>(
+        future: _initializationFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SizedBox.shrink();
+          }
+          return Consumer<SavedQrController>(
+            builder: (context, savedQrController, child) {
 
-          if (savedQrController.isLoading) {
-            return Shimmer.fromColors(
-              baseColor: Colors.grey[900]!,
-              highlightColor: const Color.fromARGB(255, 40, 40, 40),
-              child: ListView.builder(
-                itemCount: 4,
-                itemBuilder: (context, index) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    child: SizedBox(
-                      height: 70,
-                      child: Card(
-                        color: Color(0xFF151515),
-                      ),
+              if (savedQrController.isLoading) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (savedQrController.isLoading) {
+                    savedQrController.initialize();
+                  }
+                });
+
+                return Shimmer.fromColors(
+                  direction: ShimmerDirection.ltr,
+                  baseColor: isDark 
+                      ? AppColors.black 
+                      : AppColors.white,
+                  highlightColor: isDark 
+                      ? AppColors.neutralGrey950 
+                      : AppColors.neutralLightGrey,
+                  child: ListView.builder(
+                    itemCount: savedQrController.shimmerItemCount,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        child: SizedBox(
+                          height: 70,
+                          child: Card(
+                            color: isDark 
+                                ? AppColors.neutralGrey950 
+                                : AppColors.neutralLightGrey,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }
+              if (savedQrController.savedQrCode.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [ 
+                      Image.asset(
+                      isDark? 'assets/195.png': 'assets/197.png',
+                      height: 200,
+                      fit: BoxFit.contain,
                     ),
-                  );
+                    const SizedBox(height: 10),
+                    Text(
+                      'No QR Codes Saved Yet',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                          color: isDark ? AppColors.white : AppColors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                     )
+                   ]
+                  ),
+                );
+              }
+              return ListView.builder(
+                itemCount: savedQrController.savedQrCode.length,
+                itemBuilder: (context, index) {
+                  final scanResult = savedQrController.savedQrCode[index];
+                  return SavedQrCard(scanResult: scanResult);
                 },
-              ),
-            );
-          }
-
-          if (savedQrController.savedQrCode.isEmpty) {
-            return Center(
-              child: Image.asset(
-                'assets/195.png',
-                height: 280,
-                fit: BoxFit.contain,
-              ),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: savedQrController.savedQrCode.length,
-            itemBuilder: (context, index) {
-              final scanResult = savedQrController.savedQrCode[index];
-              return SavedQrCard(scanResult: scanResult);
+              );
             },
           );
         },

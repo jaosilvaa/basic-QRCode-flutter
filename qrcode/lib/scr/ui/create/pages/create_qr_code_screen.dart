@@ -1,36 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'dart:async';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:qrqrcode/scr/domain/models/qr_type.dart';
-import 'package:qrqrcode/scr/ui/create/pages/generate_qr_code_screen_new.dart';
-import 'package:qrqrcode/scr/ui/widgets/custom_appBar_new.dart';
+import 'package:qrqrcode/scr/core/theme/app_colors.dart';
+import 'package:qrqrcode/scr/domain/models/enums/qr_type.dart';
+import 'package:qrqrcode/scr/ui/create/pages/generate_qr_code_screen.dart';
+import 'package:qrqrcode/scr/ui/widgets/custom_app_bar.dart';
 import 'package:qrqrcode/scr/core/theme/app_text_styles.dart';
 
 class CreateQrCodeScreen extends StatelessWidget {
   const CreateQrCodeScreen({super.key});
 
   void _navigateToGenerateScreen(BuildContext context, QRType type) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => GenerateQrCodeScreenNew(qrType: type),
-      ),
-    );
+    context.push('/create/generate', extra: type);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: CustomAppBarNew(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: CustomAppBar(
         title: "Create QR Code",
-        backgroundColor: theme.colorScheme.background,
-        textColor: theme.colorScheme.onBackground,
-        iconTheme: IconThemeData(color: theme.colorScheme.onBackground),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        textColor: isDark ? AppColors.white : AppColors.black,
+        iconTheme: IconThemeData(
+          color: isDark ? AppColors.white : AppColors.black,
+        ),
       ),
-      drawer: Drawer(),
+      drawer: const Drawer(),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
@@ -39,14 +40,14 @@ class CreateQrCodeScreen extends StatelessWidget {
             RichText(
               text: TextSpan(
                 style: AppTextStyles.headline4.copyWith(
-                  color: theme.colorScheme.onBackground,
+                  color: isDark ? AppColors.white : AppColors.black,
                 ),
                 children: <TextSpan>[
                   const TextSpan(text: 'Select an option to create\nyour '),
                   TextSpan(
                     text: 'QR Code',
                     style: TextStyle(
-                      color: theme.colorScheme.primary,
+                      color: AppColors.primary,
                       fontWeight: AppTextStyles.headline4.fontWeight,
                     ),
                   ),
@@ -65,29 +66,25 @@ class CreateQrCodeScreen extends StatelessWidget {
                   _QrCodeOptionCard(
                     icon: LucideIcons.type,
                     text: 'Create new\nText',
-                    iconBackgroundColor: theme.colorScheme.surface,
-                    iconColor: theme.colorScheme.onPrimary,
+                    isDark: isDark,
                     onTap: () => _navigateToGenerateScreen(context, QRType.plainText),
                   ),
                   _QrCodeOptionCard(
                     icon: LucideIcons.wifi,
                     text: 'Create new\nWifi',
-                    iconBackgroundColor: theme.colorScheme.surface,
-                    iconColor: theme.colorScheme.onPrimary,
+                    isDark: isDark,
                     onTap: () => _navigateToGenerateScreen(context, QRType.wifi),
                   ),
                   _QrCodeOptionCard(
                     icon: LucideIcons.link,
                     text: 'Create new\nURL',
-                    iconBackgroundColor: theme.colorScheme.surface,
-                    iconColor: theme.colorScheme.onPrimary,
+                    isDark: isDark,
                     onTap: () => _navigateToGenerateScreen(context, QRType.url),
                   ),
                   _QrCodeOptionCard(
                     icon: LucideIcons.userRound,
                     text: 'Create new\nContact',
-                    iconBackgroundColor: theme.colorScheme.surface,
-                    iconColor: theme.colorScheme.onPrimary,
+                    isDark: isDark,
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Função de Contato em desenvolvimento!')),
@@ -107,36 +104,47 @@ class CreateQrCodeScreen extends StatelessWidget {
 class _QrCodeOptionCard extends StatelessWidget {
   final IconData icon;
   final String text;
-  final Color iconBackgroundColor;
-  final Color iconColor;
+  final bool isDark;
   final VoidCallback onTap;
 
   const _QrCodeOptionCard({
     required this.icon,
     required this.text,
-    required this.iconBackgroundColor,
-    required this.iconColor,
+    required this.isDark,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    
+    final cardBackgroundColor = isDark 
+        ? AppColors.neutralGrey950 
+        : AppColors.neutralLightGrey;
+    
+    final circleBackgroundColor = isDark 
+        ? AppColors.white 
+        : AppColors.neutralMidLightGrey;
+    
+    final iconColor = AppColors.black;
+    
+    final textColor = isDark 
+        ? AppColors.white 
+        : AppColors.neutralGrey900;
 
     return Material(
-      color: theme.colorScheme.secondary,
+      color: cardBackgroundColor,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
+        borderRadius: BorderRadius.circular(18),
         onTap: () {
           HapticFeedback.lightImpact();
-          Future.delayed(const Duration(milliseconds: 70), () {
+          Future.delayed(const Duration(milliseconds: 290), () { 
             onTap();
           });
         },
-        borderRadius: BorderRadius.circular(18),
-        splashColor: theme.colorScheme.primary.withOpacity(0.1),
-        highlightColor: Colors.transparent,
         splashFactory: InkRipple.splashFactory,
+        // ===============================================
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -145,7 +153,7 @@ class _QrCodeOptionCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 58.75 / 2,
-                backgroundColor: iconBackgroundColor,
+                backgroundColor: circleBackgroundColor,
                 child: Icon(
                   icon,
                   size: 24.55,
@@ -157,7 +165,7 @@ class _QrCodeOptionCard extends StatelessWidget {
                 text,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSecondary,
+                  color: textColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),

@@ -1,55 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:qrqrcode/scr/ui/create/pages/create_qr_code_screen.dart';
-import 'package:qrqrcode/scr/ui/saved/pages/saved_qr_screen.dart';
-import 'package:qrqrcode/scr/ui/scanner/pages/qr_scanner.dart';
 
-class MainScreen extends StatefulWidget{
-  const MainScreen({super.key});
+class MainScreen extends StatelessWidget {
+  final Widget child;
 
-  @override
-  State<MainScreen> createState() => _MainScreenState();
+  const MainScreen({super.key, required this.child});
 
-}
+  int _calculateSelectedIndex(BuildContext context) {
+    final String location = GoRouterState.of(context).uri.path;
+    if (location.startsWith('/scanner')) return 0;
+    if (location.startsWith('/create')) return 1;
+    if (location.startsWith('/saved')) return 2;
+    if (location.startsWith('/settings')) return 3;
+    return 0;
+  }
 
-class _MainScreenState extends State<MainScreen>{
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = [
-    const QrScanner(),
-   // const QRGeneratorScreen(),
-    const CreateQrCodeScreen(),
-    const SavedQrScreen(),
-    const Placeholder(),
-  ];
+  void _onItemTapped(int index, BuildContext context) {
+    switch (index) {
+      case 0: context.go('/scanner'); break;
+      case 1: context.go('/create'); break;
+      case 2: context.go('/saved'); break;
+      case 3: context.go('/settings'); break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bottomNavBackgroundColor = theme.bottomNavigationBarTheme.backgroundColor ?? Colors.black;
+
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: child,
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: Color.fromRGBO(255, 255, 255, 0.2),
-              width: 1,
-            ),
-          ),
-          color: Colors.black,
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: theme.colorScheme.outline, width: 1)),
+          color: bottomNavBackgroundColor,
         ),
         child: CustomBottomNavBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
+          currentIndex: _calculateSelectedIndex(context),
+          onTap: (index) => _onItemTapped(index, context),
         ),
-
       ),
     );
   }
-
 }
 
 class CustomBottomNavBar extends StatelessWidget {
@@ -69,54 +63,41 @@ class CustomBottomNavBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildNavItem(0, Iconsax.scan, 'Scanner'),
-          _buildNavItem(1, Iconsax.add_circle, 'Create'),
-          _buildNavItem(2, Iconsax.clock, 'Salvos'),
-          _buildNavItem(3, Iconsax.setting, 'Config'),
+          _buildNavItem(context, 0, Iconsax.scan, 'Scanner'),
+          _buildNavItem(context, 1, Iconsax.add_circle, 'Create'),
+          _buildNavItem(context, 2, Iconsax.clock, 'Salvos'),
+          _buildNavItem(context, 3, Iconsax.setting, 'Config'),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem(BuildContext context, int index, IconData icon, String label) {
     final isSelected = index == currentIndex;
-    
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => onTap(index),
-            // ignore: deprecated_member_use
-            splashColor: const Color(0xFFBBFB4C).withOpacity(0.2),
-            highlightColor: Colors.transparent,
-            customBorder: const CircleBorder(),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(
-                icon,
-                color: isSelected 
-                  ? const Color(0xFFBBFB4C) 
-                  // ignore: deprecated_member_use
-                  : const Color(0x00bcbdbc).withOpacity(0.5),
-                size: 26,
-              ),
+    final theme = Theme.of(context);
+    final isLight = theme.brightness == Brightness.light;
+
+    final selectedColor = isLight ? theme.colorScheme.onSurface : theme.colorScheme.primary;
+    final selectedTextColor = theme.colorScheme.onSurface;
+    final unselectedColor = theme.colorScheme.outline;
+
+    return InkWell(
+      onTap: () => onTap(index),
+      splashColor: const Color(0xFFBBFB4C).withOpacity(0.2),
+      highlightColor: Colors.transparent,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: isSelected ? selectedColor : unselectedColor, size: 26),
+          if (isSelected) ...[
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(color: selectedTextColor, fontSize: 14, fontWeight: FontWeight.w500),
             ),
-          ),
-        ),
-        if (isSelected) ...[
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

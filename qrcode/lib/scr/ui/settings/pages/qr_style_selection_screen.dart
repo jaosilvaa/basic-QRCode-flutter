@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:qrqrcode/scr/ui/settings/controllers/theme_controller.dart';
+import 'package:qrqrcode/scr/domain/models/enums/qr_style_type.dart';
+import 'package:qrqrcode/scr/ui/settings/controllers/qr_style_controller.dart';
 
-class ThemeSelectionScreen extends StatelessWidget {
-  const ThemeSelectionScreen({super.key});
+class QrStyleSelectionScreen extends StatelessWidget {
+  const QrStyleSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    return Consumer<ThemeController>(
-      builder: (context, themeController, child) {
+    return Consumer<QrStyleController>(
+      builder: (context, controller, child) {
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
           appBar: AppBar(
@@ -25,7 +26,7 @@ class ThemeSelectionScreen extends StatelessWidget {
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
-              'Select Theme',
+              'Select Style',
               style: theme.appBarTheme.titleTextStyle,
             ),
           ),
@@ -33,23 +34,23 @@ class ThemeSelectionScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20.0),
             child: Column(
               children: [
-                _buildThemeOption(
+                _buildStyleOption(
                   context: context,
-                  title: 'Light',
-                  mode: ThemeMode.light,
-                  currentMode: themeController.themeMode,
-                  onChanged: (mode) {
-                    themeController.updateThemeMode(mode);
+                  title: 'Rounded',
+                  styleType: QrStyleType.modern,
+                  currentStyle: controller.qrStyle,
+                  onChanged: (val) {
+                    if(val != null) controller.updateQrStyle(val);
                   },
                 ),
                 const SizedBox(height: 10),
-                _buildThemeOption(
+                _buildStyleOption(
                   context: context,
-                  title: 'Dark',
-                  mode: ThemeMode.dark,
-                  currentMode: themeController.themeMode,
-                  onChanged: (mode) {
-                    themeController.updateThemeMode(mode);
+                  title: 'Square', 
+                  styleType: QrStyleType.traditional,
+                  currentStyle: controller.qrStyle,
+                  onChanged: (val) {
+                     if(val != null) controller.updateQrStyle(val);
                   },
                 ),
               ],
@@ -60,19 +61,19 @@ class ThemeSelectionScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildThemeOption({
+  Widget _buildStyleOption({
     required BuildContext context,
     required String title,
-    required ThemeMode mode,
-    required ThemeMode currentMode,
-    required ValueChanged<ThemeMode?> onChanged,
+    required QrStyleType styleType,
+    required QrStyleType currentStyle,
+    required ValueChanged<QrStyleType?> onChanged,
   }) {
     final theme = Theme.of(context);
     
-    return RadioListTile<ThemeMode>(
-      value: mode,
+    return RadioListTile<QrStyleType>(
+      value: styleType,
       // ignore: deprecated_member_use
-      groupValue: currentMode,
+      groupValue: currentStyle,
       // ignore: deprecated_member_use
       onChanged: onChanged,
       title: Text(

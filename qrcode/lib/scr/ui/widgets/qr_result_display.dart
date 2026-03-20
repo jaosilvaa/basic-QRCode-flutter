@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:qrqrcode/scr/core/theme/app_text_styles.dart';
-import 'package:qrqrcode/scr/domain/models/qr_type.dart';
+import 'package:qrqrcode/scr/domain/models/enums/qr_type.dart';
 import 'package:qrqrcode/scr/domain/models/scan_result.dart';
 import 'package:qrqrcode/scr/domain/parser/qr_parser.dart';
-import 'package:qrqrcode/scr/shared/utils/qr_utils.dart';
 import 'package:qrqrcode/scr/ui/widgets/custom_display_field.dart'; 
 
 class QrResultDisplay extends StatefulWidget {
@@ -20,8 +18,6 @@ class _QrResultDisplayState extends State<QrResultDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
     return Column(
         mainAxisSize: MainAxisSize.min,
         children: [

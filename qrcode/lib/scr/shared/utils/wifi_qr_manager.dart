@@ -1,134 +1,128 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:qrqrcode/scr/domain/parser/qr_parser.dart';
+import 'package:qrqrcode/scr/shared/utils/context_extensions.dart';
 import 'package:wifi_iot/wifi_iot.dart';
+import 'package:permission_handler/permission_handler.dart'; 
 
-
-class WiFiManager {
-  static Future<bool> _ensureWifiEnabled() async {
-    bool isEnabled = await WiFiForIoTPlugin.isEnabled();
-    if (!isEnabled) {
-      return await WiFiForIoTPlugin.setEnabled(true);
-    }
-    return true;
-  }
-
+class WifiManager{
   static Future<bool> connectToWifi(
     BuildContext context,
     String qrData, {
     bool showFeedback = true,
-  }) async {
-    try {
-      bool wifiEnabled = await _ensureWifiEnabled();
-      if (!wifiEnabled) {
-        // ignore: use_build_context_synchronously
-        if (showFeedback) _showSnackBar(context, 'Não foi possível ativar o Wi-Fi');
-        return false;
-      }
+    }) async {
+      try{
+        final  Map<String, String> wifiData = QRParser.parseWifi(qrData);
+        final String? ssidRaw = wifiData['S'];
+        if(ssidRaw == null || ssidRaw.isEmpty){
+          if(showFeedback){
+            context.showFeedback(
+              'SSID inválido',
+              type: FeedbackType.error,
+            );
+          }
+          return false;
+        }
+        final String ssid = ssidRaw.trim();
 
-      Map<String, String> wifiInfo = QRParser.parseWifi(qrData);
-
-      String? ssid = wifiInfo['S'];
-      if (ssid == null || ssid.isEmpty) {
-        // ignore: use_build_context_synchronously
-        if (showFeedback) _showSnackBar(context, 'SSID não encontrado');
-        return false;
-      }
-
-      String? password = wifiInfo['P'] ?? '';
-      String? securityType = wifiInfo['T'] ?? 'WPA';
-
-      debugPrint('Tentando conectar a: $ssid (Tipo: $securityType)');
-
-      NetworkSecurity security;
-      switch (securityType.toUpperCase()) {
-        case 'WEP':
-          security = NetworkSecurity.WEP;
-          break;
-        case 'NONE':
-        case 'NOPASS':
-          security = NetworkSecurity.NONE;
-          break;
-        case 'WPA':
-        case 'WPA2':
-        default:
-          security = NetworkSecurity.WPA;
-          break;
-      }
-      bool registered = await WiFiForIoTPlugin.registerWifiNetwork(
-        ssid,
-        password: password,
-        security: security,
-      );
-
-      if (!registered) {
-        // ignore: use_build_context_synchronously
-        if (showFeedback) _showSnackBar(context, 'Falha ao registrar a rede $ssid');
-        return false;
-      }
-
-      bool isConnected = await WiFiForIoTPlugin.connect(
-        ssid,
-        password: password,
-        security: security,
-        joinOnce: false, 
-        withInternet: true,
-      );
-
-      if (isConnected) {
-        // ignore: use_build_context_synchronously
-        if (showFeedback) _showSnackBar(context, 'Conectado à rede $ssid');
+        await Permission.location.request();
         
-        try {
-          debugPrint('Forçando uso do WiFi para conexão de internet');
-          await WiFiForIoTPlugin.forceWifiUsage(true);
-        } catch (e) {
-          debugPrint('Erro ao forçar uso do Wi-Fi: $e');
+        final String? currentSsidRaw = await WiFiForIoTPlugin.getSSID();
+        final String currentSsid = (currentSsidRaw ?? '').replaceAll('"', '').trim();
+        if(currentSsid.isNotEmpty &&
+          currentSsid != '<unknown ssid>' &&
+          currentSsid.toLowerCase() == ssid.toLowerCase()){
+            if(showFeedback){
+              context.showFeedback(
+                'Você já está conectado à rede $ssid',
+                type: FeedbackType.warning,
+              );
+            }
+            return true;
         }
 
-        Timer(const Duration(seconds: 3), () async {
-          bool isStillConnected = await WiFiForIoTPlugin.isConnected();
-          String? currentSSID = await WiFiForIoTPlugin.getSSID();
-          
-          if (!isStillConnected || currentSSID != ssid) {
-            // ignore: use_build_context_synchronously
-            if (showFeedback) _showSnackBar(context, 'Conexão instável. Tentando reconectar...');
-            
-            // Tenta reconectar
-            isConnected = await WiFiForIoTPlugin.connect(
+        final String password = wifiData['P'] ?? '';
+        final authType = wifiData['T'] ?? 'WPA';
+
+        final NetworkSecurity security;
+        switch (authType.toUpperCase()){
+          case 'WEP':
+            security = NetworkSecurity.WEP;
+            break;
+          case 'NONE':
+          case 'NOPASS':
+            security = NetworkSecurity.NONE;
+            break;
+          default:
+            security = NetworkSecurity.WPA;
+            break;
+        }
+        try{
+          await WiFiForIoTPlugin
+            .registerWifiNetwork(
               ssid,
               password: password,
               security: security,
-              joinOnce: false,
-              withInternet: true,
+            )
+            .timeout(
+              const Duration(seconds: 2),
+              onTimeout: () => false
             );
-            
-            if (isConnected && showFeedback) {
-              // ignore: use_build_context_synchronously
-              _showSnackBar(context, 'Reconectado à rede $ssid');
-            }
-          } else if (showFeedback) {
-            // ignore: use_build_context_synchronously
-            _showSnackBar(context, 'Conexão estável com $ssid');
+        }catch(e){
+
+        }
+
+        await WiFiForIoTPlugin.connect(
+          ssid,
+          password: password,
+          security: security,
+          joinOnce: true,
+          withInternet: true,
+        );
+
+        bool isConnected = false;
+        for(var i = 0; i<2; i++){
+          await Future.delayed(const Duration(seconds: 1));
+          final String? checkedSsidRaw = await WiFiForIoTPlugin.getSSID();
+          final String checkedSsid = 
+            (checkedSsidRaw ?? '').replaceAll('"', '').trim();
+          
+          if(checkedSsid.toLowerCase() == ssid.toLowerCase()){
+            isConnected = true;
+            break;
           }
-        });
-        
-        return true;
-      } else {
-        // ignore: use_build_context_synchronously
-        if (showFeedback) _showSnackBar(context, 'Falha ao conectar à rede $ssid');
-        return false;
-      }
-    } catch (e) {
-      debugPrint('Erro ao conectar ao Wi-Fi: $e');
-      // ignore: use_build_context_synchronously
-      if (showFeedback) _showSnackBar(context, 'Erro ao conectar: ${e.toString()}');
+        }
+
+        if(isConnected){
+          if(showFeedback){
+            context.showFeedback(
+              'Conectado à rede $ssid',
+              type: FeedbackType.success,
+            );
+          }
+
+          try{
+            await WiFiForIoTPlugin.forceWifiUsage(true);
+          }catch(_){}
+          return true;
+        }else{
+          if(showFeedback){
+            context.showFeedback(
+              'Verifique se o Wi-fi está ligado!',
+              type: FeedbackType.error,
+            );
+          }
+          return false;
+        }
+      }catch(e){
+        if(showFeedback){
+          context.showFeedback(
+            'Erro: $e',
+            type: FeedbackType.error,
+          );
+        }
       return false;
+      }
     }
-  }
-  static void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-}
+ }
+    

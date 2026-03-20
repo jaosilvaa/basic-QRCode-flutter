@@ -1,0 +1,4 @@
+enum QrStyleType {
+  modern,
+  traditional
+}

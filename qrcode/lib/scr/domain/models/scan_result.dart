@@ -1,4 +1,4 @@
-import 'package:qrqrcode/scr/domain/models/qr_type.dart';
+import 'package:qrqrcode/scr/domain/models/enums/qr_type.dart';
 import 'package:qrqrcode/scr/shared/utils/qr_utils.dart';
 
 class ScanResult {
@@ -6,13 +6,31 @@ class ScanResult {
   final String rawValue;
   final QRType type;
   final DateTime scanTime;
+  final String? customName;
 
   ScanResult({
     required this.id,
     required this.rawValue,
     required this.type,
     DateTime? scanTime,
+    this.customName,
   }) : scanTime = scanTime ?? DateTime.now();
+
+  ScanResult copyWith({
+    String? id,
+    String? rawValue,
+    QRType? type,
+    DateTime? scanTime,
+    String? customName,
+  }) {
+    return ScanResult(
+      id: id ?? this.id,
+      rawValue: rawValue ?? this.rawValue,
+      type: type ?? this.type,
+      scanTime: scanTime ?? this.scanTime,
+      customName: customName ?? this.customName,
+    );
+  }
 
   factory ScanResult.fromRawValue(String value) {
     return ScanResult(
@@ -28,6 +46,7 @@ class ScanResult {
       'rawValue': rawValue,
       'type': type.name,
       'scanTime': scanTime.toIso8601String(),
+      'customName': customName,
     };
   }
 
@@ -40,6 +59,7 @@ class ScanResult {
         orElse: () => QRType.unknown,
       ),
       scanTime: DateTime.parse(json['scanTime'] as String),
+      customName: json['customName'] as String?,
     );
   }
 

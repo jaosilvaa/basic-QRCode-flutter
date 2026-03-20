@@ -1,4 +1,4 @@
-import 'package:qrqrcode/scr/domain/models/qr_type.dart';
+import 'package:qrqrcode/scr/domain/models/enums/qr_type.dart';
 
 class QRParser {
   static Map<String, String> parseWifi(String qrData) {
